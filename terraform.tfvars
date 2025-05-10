@@ -39,7 +39,7 @@ instances  = {
         zone = "us-east4-b"
         subnet = "i27-ecommerce-east4-subnet"
         disk_size = 20
-    },
+    }
 }
 
 

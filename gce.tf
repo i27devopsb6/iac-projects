@@ -44,4 +44,33 @@ resource "google_compute_instance" "tf-vm-instance" {
     ssh-keys = "${var.vm_user}:${tls_private_key.i27-ecommerce-key.public_key_openssh}"
   }
 
+  connection {
+    host = self.network_interface[0].access_config[0].nat_ip
+    type = "ssh" # winrm
+    user = var.vm_user
+    private_key = tls_private_key.i27-ecommerce-key.private_key_pem
+  }
+  # provisioner
+  provisioner "file" {
+    source =  each.key == "ansible" ? "ansible.sh" : "empty.sh"  
+    destination = each.key == "ansible" ? "/home/${var.vm_user}/ansible.sh" : "/home/${var.vm_user}/empty.sh"
+  }
+
+  # Providioner block to eecute the script on the remote server 
+  provisioner "remote-exec" {
+    inline = [ 
+      each.key == "ansible" ? "chmod +x /home/${var.vm_user}/ansible.sh && /home/${var.vm_user}/ansible.sh" : "echo 'Not an ansible vm'"
+     ]
+  }
+
+ # File Provisioner to copy private key all on the vms
+ provisioner "file" {
+   source = "${path.module}/id_rsa"
+   destination = "/home/${var.vm_user}/ssh-key"
+ }
+
+
+
+
+ 
 }
